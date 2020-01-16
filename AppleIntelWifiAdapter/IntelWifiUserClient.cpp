@@ -1,0 +1,75 @@
+//
+//  IntelWifiUserClient.cpp
+//  IntelWifi
+//
+//  Created by Roman Peshkov on 31/01/2018.
+//  Copyright © 2018 Roman Peshkov. All rights reserved.
+//
+
+#include "IntelWifiUserClient.hpp"
+#include <os/log.h>
+
+#define super IOUserClient
+
+OSDefineMetaClassAndStructors(IntelWifiUserClient, IOUserClient)
+
+const IOExternalMethodDispatch IntelWifiUserClient::sMethods[kNumberOfMethods] = {
+    {
+        // kIwlClientScan
+        (IOExternalMethodAction) &IntelWifiUserClient::scan,
+        0,
+        0,
+        0,
+        0
+    }
+};
+
+bool IntelWifiUserClient::start(IOService *provider) {
+    
+    os_log(OS_LOG_DEFAULT, "Driver init()");
+    fProvider = OSDynamicCast(IntelWifi, provider);
+    
+    if (fProvider == NULL) {
+        return false;
+    }
+    
+    return super::start(provider);
+}
+
+
+void IntelWifiUserClient::stop(IOService *provider) {
+    os_log(OS_LOG_DEFAULT, "Driver stop()");
+    super::stop(provider);
+}
+
+
+IOReturn IntelWifiUserClient::externalMethod(uint32_t selector,
+                                             IOExternalMethodArguments *arguments,
+                                             IOExternalMethodDispatch *dispatch,
+                                             OSObject *target,
+                                             void *reference) {
+ 
+    if (selector < (uint32_t) kNumberOfMethods) {
+        dispatch = (IOExternalMethodDispatch *) &sMethods[selector];
+        
+        if (!target) {
+            target = this;
+        }
+    }
+    
+    return super::externalMethod(selector, arguments, dispatch, target, reference);
+    
+}
+
+IOReturn IntelWifiUserClient::scan(IntelWifiUserClient *target, void *reference, IOExternalMethodArguments *arguments) {
+    return target->scanImpl();
+}
+
+IOReturn IntelWifiUserClient::scanImpl() {
+//    this->fProvider->opmode->scan();
+    return kIOReturnSuccess;
+}
+
+
+
+
